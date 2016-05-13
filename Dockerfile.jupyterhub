@@ -6,14 +6,15 @@ FROM jupyterhub/jupyterhub-onbuild:0.6.1
 RUN /opt/conda/bin/pip install \
     jupyterhub==0.6.* \
     oauthenticator==0.3.* \
-    dockerspawner==0.3.*
+    dockerspawner==0.3.* \
+    jupyterhub-ldapauthenticator
 
 # Copy TLS certificate and key
-ENV SSL_CERT /srv/jupyterhub/secrets/jupyterhub.cer
+ENV SSL_CERT /srv/jupyterhub/secrets/jupyterhub.pem
 ENV SSL_KEY /srv/jupyterhub/secrets/jupyterhub.key
-COPY ./secrets/*.cer $SSL_CERT
+COPY ./secrets/*.pem $SSL_CERT
 COPY ./secrets/*.key $SSL_KEY
 RUN chmod 700 /srv/jupyterhub/secrets && \
     chmod 600 /srv/jupyterhub/secrets/*
 
-COPY ./userlist /srv/jupyterhub/userlist
+# COPY ./userlist /srv/jupyterhub/userlist

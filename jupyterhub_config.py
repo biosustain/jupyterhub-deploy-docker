@@ -6,6 +6,14 @@ import os
 
 c = get_config()
 
+# Country Name (2 letter code) [AU]:DK
+# State or Province Name (full name) [Some-State]:Copenhagen
+# Locality Name (eg, city) []:Copenhagen
+# Organization Name (eg, company) [Internet Widgits Pty Ltd]:DTU
+# Organizational Unit Name (eg, section) []:Biosustain
+# Common Name (e.g. server FQDN or YOUR name) []:Jupyterhub
+# Email Address []:svegal@biosustain.dtu.dk
+
 # We rely on environment variables to configure JupyterHub so that we
 # avoid having to rebuild the JupyterHub container every time we change a
 # configuration parameter.
@@ -51,9 +59,11 @@ c.JupyterHub.port = 443
 c.JupyterHub.ssl_key = os.environ['SSL_KEY']
 c.JupyterHub.ssl_cert = os.environ['SSL_CERT']
 
-# Authenticate users with GitHub OAuth
-c.JupyterHub.authenticator_class = 'oauthenticator.GitHubOAuthenticator'
-c.GitHubOAuthenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
+# Authenticate users with LDAP
+c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
+c.LDAPAuthenticator.server_address = 'ldap://win.dtu.dk'
+c.LDAPAuthenticator.server_port = 389
+c.LDAPAuthenticator.bind_dn_template = '{username}@win'
 
 # Persist hub data on volume mounted inside container
 data_dir = os.environ.get('DATA_VOLUME_CONTAINER', '/data')
@@ -62,16 +72,16 @@ c.JupyterHub.cookie_secret_file = os.path.join(data_dir,
     'jupyterhub_cookie_secret')
 
 # Whitlelist users and admins
-c.Authenticator.whitelist = whitelist = set()
-c.Authenticator.admin_users = admin = set()
+# c.Authenticator.whitelist = whitelist = set()
+c.Authenticator.admin_users = admin = set(["niso", "svegal"])
 c.JupyterHub.admin_access = True
-pwd = os.path.dirname(__file__)
-with open(os.path.join(pwd, 'userlist')) as f:
-    for line in f:
-        if not line:
-            continue
-        parts = line.split()
-        name = parts[0]
-        whitelist.add(name)
-        if len(parts) > 1 and parts[1] == 'admin':
-            admin.add(name)
+# pwd = os.path.dirname(__file__)
+# with open(os.path.join(pwd, 'userlist')) as f:
+#     for line in f:
+#         if not line:
+#             continue
+#         parts = line.split()
+#         name = parts[0]
+#         whitelist.add(name)
+#         if len(parts) > 1 and parts[1] == 'admin':
+#             admin.add(name)
