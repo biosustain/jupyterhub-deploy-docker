@@ -18,14 +18,6 @@ class PasswordPropagatingAuthenticator(LDAPAuthenticator):
 
 c = get_config()
 
-# Country Name (2 letter code) [AU]:DK
-# State or Province Name (full name) [Some-State]:Copenhagen
-# Locality Name (eg, city) []:Copenhagen
-# Organization Name (eg, company) [Internet Widgits Pty Ltd]:DTU
-# Organizational Unit Name (eg, section) []:Biosustain
-# Common Name (e.g. server FQDN or YOUR name) []:Jupyterhub
-# Email Address []:svegal@biosustain.dtu.dk
-
 # We rely on environment variables to configure JupyterHub so that we
 # avoid having to rebuild the JupyterHub container every time we change a
 # configuration parameter.
