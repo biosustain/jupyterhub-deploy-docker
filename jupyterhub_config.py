@@ -2,7 +2,19 @@
 # Distributed under the terms of the Modified BSD License.
 
 # Configuration file for JupyterHub
+from tornado import gen
+from ldapauthenticator import LDAPAuthenticator
 import os
+
+
+class PasswordPropagatingAuthenticator(LDAPAuthenticator):
+
+    @gen.coroutine
+    def authenticate(self, handler, data):
+        os.environ["JPY_PASS"] = data['password']
+        result = yield super().authenticate(handler, data)
+        return result
+
 
 c = get_config()
 
@@ -35,7 +47,7 @@ c.DockerSpawner.use_internal_ip = True
 c.DockerSpawner.network_name = network_name
 # Pass the network name as argument to spawned containers
 c.DockerSpawner.extra_host_config = { 'network_mode': network_name }
-c.DockerSpawner.extra_start_kwargs = { 'network_mode': network_name }
+c.DockerSpawner.extra_start_kwargs = { 'network_mode': network_name, 'privileged': True }
 # Explicitly set notebook directory because we'll be mounting a host volume to
 # it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
 # user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
@@ -59,8 +71,10 @@ c.JupyterHub.port = 443
 c.JupyterHub.ssl_key = os.environ['SSL_KEY']
 c.JupyterHub.ssl_cert = os.environ['SSL_CERT']
 
+# Keep password as env variable - used for accessing mounted folder
+c.Spawner.env_keep.append("JPY_PASS")
 # Authenticate users with LDAP
-c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
+c.JupyterHub.authenticator_class = PasswordPropagatingAuthenticator
 c.LDAPAuthenticator.server_address = 'ldap://win.dtu.dk'
 c.LDAPAuthenticator.server_port = 389
 c.LDAPAuthenticator.bind_dn_template = '{username}@win'

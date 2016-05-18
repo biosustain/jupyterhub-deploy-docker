@@ -6,14 +6,9 @@ set -e
 
 # If the run command is the default, do some initialization first
 if [ "$(which "$1")" = "/usr/local/bin/start-singleuser.sh" ]; then
-  # Clone sample notebooks to user's notebook directory.  Assume $NB_USER's work
-  # directory if notebook directory not explicitly set.  `git clone` will fail
-  # if target directory already exists and is not empty, which likely means
-  # that we've already done it, so just ignore.
+  # Mount JPY_USER shared folder to the NOTEBOOK_DIR folder
   : ${NOTEBOOK_DIR:=/home/$NB_USER/work}
-  git clone https://gist.github.com/parente/facb555dfbae28e817e0 \
-    --depth 1 \
-    "$NOTEBOOK_DIR/notebook_count" || true
+  mount -v -t cifs //dtu-storage.win.dtu.dk/$JPY_USER $NOTEBOOK_DIR -o username=$JPY_USER,password=$JPY_PASS,sec=ntlm
 fi
 
 # Run the command provided

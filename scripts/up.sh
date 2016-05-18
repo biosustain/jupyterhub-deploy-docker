@@ -1,5 +1,6 @@
-# Create Docker machine and activate it
-docker-machine create --driver generic --generic-ip-address $1 --generic-ssh-key $2 --generic-ssh-user root jupyterhub
+#!/usr/bin/env bash
+# Docker machine named jupyterhub and docker image named biosustain-cobranb-scipy are required
+#docker-machine create --driver generic --generic-ip-address $1 --generic-ssh-key $2 --generic-ssh-user root jupyterhub
 eval "$(docker-machine env jupyterhub)"
 
 # Create Docker network
@@ -26,4 +27,4 @@ export DOCKER_NOTEBOOK_IMAGE=biosustain-cobranb
 
 # Run the service
 #docker-compose -f examples/letsencrypt/docker-compose.yml up --build
-docker-compose up --d
+docker-compose up -d

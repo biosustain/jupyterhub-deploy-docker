@@ -4,7 +4,7 @@
 # Pin to version of notebook image that includes start-singleuser.sh script
 #FROM jupyter/scipy-notebook:2d878db5cbff
 FROM biosustain-cobranb-scipy
-
+RUN apt-get -y install cifs-utils
 # Install packages in default Python 3 environment
 RUN pip install \
   beautifulsoup4==4.4.*
@@ -18,5 +18,3 @@ USER root
 COPY docker-entrypoint.sh /srv/docker-entrypoint.sh
 ENTRYPOINT ["tini", "--", "/srv/docker-entrypoint.sh"]
 CMD ["start-singleuser.sh"]
-
-USER jovyan
