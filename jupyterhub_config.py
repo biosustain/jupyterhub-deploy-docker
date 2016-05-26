@@ -2,19 +2,7 @@
 # Distributed under the terms of the Modified BSD License.
 
 # Configuration file for JupyterHub
-from tornado import gen
-from ldapauthenticator import LDAPAuthenticator
 import os
-
-
-class PasswordPropagatingAuthenticator(LDAPAuthenticator):
-
-    @gen.coroutine
-    def authenticate(self, handler, data):
-        os.environ["JPY_PASS"] = data['password']
-        result = yield super().authenticate(handler, data)
-        return result
-
 
 c = get_config()
 
@@ -63,10 +51,8 @@ c.JupyterHub.port = 443
 c.JupyterHub.ssl_key = os.environ['SSL_KEY']
 c.JupyterHub.ssl_cert = os.environ['SSL_CERT']
 
-# Keep password as env variable - used for accessing mounted folder
-c.Spawner.env_keep.append("JPY_PASS")
 # Authenticate users with LDAP
-c.JupyterHub.authenticator_class = PasswordPropagatingAuthenticator
+c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
 c.LDAPAuthenticator.server_address = 'ldap://win.dtu.dk'
 c.LDAPAuthenticator.server_port = 389
 c.LDAPAuthenticator.bind_dn_template = '{username}@win'
@@ -74,8 +60,7 @@ c.LDAPAuthenticator.bind_dn_template = '{username}@win'
 # Persist hub data on volume mounted inside container
 data_dir = os.environ.get('DATA_VOLUME_CONTAINER', '/data')
 c.JupyterHub.db_url = os.path.join('sqlite:///', data_dir, 'jupyterhub.sqlite')
-c.JupyterHub.cookie_secret_file = os.path.join(data_dir,
-    'jupyterhub_cookie_secret')
+c.JupyterHub.cookie_secret_file = os.path.join(data_dir, 'jupyterhub_cookie_secret')
 
 # Whitlelist users and admins
 # c.Authenticator.whitelist = whitelist = set()
