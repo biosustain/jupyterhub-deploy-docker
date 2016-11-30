@@ -1,30 +1,49 @@
-create-remote-machine:
-	docker-machine create --driver generic --generic-ip-address $(MACHINE_IP) --generic-ssh-key $(PATH_TO_SSH) --generic-ssh-user root jupyterhub
+# Copyright (c) Jupyter Development Team.
+# Distributed under the terms of the Modified BSD License.
 
-create-local-machine:
-	docker-machine create --driver virtualbox jupyterhub
+include .env
 
-rm-machine:
-	docker-machine rm jupyterhub
+.DEFAULT_GOAL=build
 
-restart-machine:
-	docker-machine restart jupyterhub
+network:
+	@docker network inspect $(DOCKER_NETWORK_NAME) >/dev/null 2>&1 || docker network create $(DOCKER_NETWORK_NAME)
 
-build-all:
-	@eval $$(docker-machine env jupyterhub); \
-	docker network create jupyterhub-network; \
-	docker volume create --name jupyterhub-data; \
-	docker-compose build --force-rm; \
-	docker pull $$DOCKER_NOTEBOOK_IMAGE
+volumes:
+	@docker volume inspect $(DATA_VOLUME_HOST) >/dev/null 2>&1 || docker volume create --name $(DATA_VOLUME_HOST)
 
-up:
-	@eval $$(docker-machine env jupyterhub); \
-	docker-compose up -d
+self-signed-cert:
+	# make a self-signed cert
 
-down:
-	@eval $$(docker-machine env jupyterhub); \
-	docker-compose down
+secrets/jupyterhub.crt:
+	@echo "Need an SSL certificate in secrets/jupyterhub.crt"
+	@exit 1
 
-up-local: create-local-machine build-all up
+secrets/jupyterhub.key:
+	@echo "Need an SSL key in secrets/jupyterhub.key"
+	@exit 1
 
-up-remote: create-remote-machine build-all up
+userlist:
+	@echo "Add usernames, one per line, to ./userlist, such as:"
+	@echo "    zoe admin"
+	@echo "    wash"
+	@exit 1
+
+# Do not require cert/key files if SECRETS_VOLUME defined
+secrets_volume = $(shell echo $(SECRETS_VOLUME))
+ifeq ($(secrets_volume),)
+	cert_files=secrets/jupyterhub.crt secrets/jupyterhub.key
+else
+	cert_files=
+endif
+
+check-files: userlist $(cert_files)
+
+pull:
+	docker pull $(DOCKER_NOTEBOOK_IMAGE)
+
+notebook_image: pull
+
+build: check-files network volumes
+	docker-compose build
+
+.PHONY: network volumes check-files pull notebook_image build
