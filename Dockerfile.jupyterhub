@@ -1,13 +1,11 @@
 # Copyright (c) Jupyter Development Team.
 # Distributed under the terms of the Modified BSD License.
-FROM jupyterhub/jupyterhub-onbuild:0.6.1
+FROM jupyterhub/jupyterhub-onbuild:0.7.0
 
 # Install dockerspawner and its dependencies
 RUN /opt/conda/bin/pip install \
-    jupyterhub==0.6.* \
-    oauthenticator==0.4.* \
-    dockerspawner==0.4.*
-    jupyterhub-ldapauthenticator
+    oauthenticator==0.5.* \
+    dockerspawner==0.5.*
 
 # install docker on the jupyterhub container
 RUN wget https://get.docker.com -q -O /tmp/getdocker && \
@@ -22,4 +20,4 @@ COPY ./secrets/*.key $SSL_KEY
 RUN chmod 700 /srv/jupyterhub/secrets && \
     chmod 600 /srv/jupyterhub/secrets/*
 
-# COPY ./userlist /srv/jupyterhub/userlist
+COPY ./userlist /srv/jupyterhub/userlist
