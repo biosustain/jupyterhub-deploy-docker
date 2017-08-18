@@ -27,7 +27,6 @@ c.DockerSpawner.use_internal_ip = True
 c.DockerSpawner.network_name = network_name
 # Pass the network name as argument to spawned containers
 c.DockerSpawner.extra_host_config = { 'network_mode': network_name }
-c.DockerSpawner.extra_start_kwargs = { 'network_mode': network_name, 'privileged': True }
 # Explicitly set notebook directory because we'll be mounting a host volume to
 # it.  Most jupyter/docker-stacks *-notebook images run the Notebook server as
 # user `jovyan`, and set the notebook directory to `/home/jovyan/work`.
@@ -52,16 +51,21 @@ c.JupyterHub.port = 443
 c.JupyterHub.ssl_key = os.environ['SSL_KEY']
 c.JupyterHub.ssl_cert = os.environ['SSL_CERT']
 
-# Authenticate users with LDAP
-c.JupyterHub.authenticator_class = 'ldapauthenticator.LDAPAuthenticator'
-c.LDAPAuthenticator.server_address = 'ldap://win.dtu.dk'
-c.LDAPAuthenticator.server_port = 389
-c.LDAPAuthenticator.bind_dn_template = '{username}@win'
+# Authenticate users with GitHub OAuth
+c.JupyterHub.authenticator_class = 'oauthenticator.GitHubOAuthenticator'
+c.GitHubOAuthenticator.oauth_callback_url = os.environ['OAUTH_CALLBACK_URL']
 
 # Persist hub data on volume mounted inside container
 data_dir = os.environ.get('DATA_VOLUME_CONTAINER', '/data')
-c.JupyterHub.db_url = os.path.join('sqlite:///', data_dir, 'jupyterhub.sqlite')
-c.JupyterHub.cookie_secret_file = os.path.join(data_dir, 'jupyterhub_cookie_secret')
+
+c.JupyterHub.cookie_secret_file = os.path.join(data_dir,
+    'jupyterhub_cookie_secret')
+
+c.JupyterHub.db_url = 'postgresql://postgres:{password}@{host}/{db}'.format(
+    host=os.environ['POSTGRES_HOST'],
+    password=os.environ['POSTGRES_PASSWORD'],
+    db=os.environ['POSTGRES_DB'],
+)
 
 # Whitlelist users and admins
 # c.Authenticator.whitelist = whitelist = set()
